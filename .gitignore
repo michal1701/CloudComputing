@@ -1,3 +1,4 @@
 *.pkl
 *.csv
+*.db
 src/model/model.pkl
