@@ -4,3 +4,4 @@
 src/model/model.pkl
 database/*.db
 database/predictions.db
+venv/
