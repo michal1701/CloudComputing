@@ -1,9 +1,0 @@
-# .dockerignore
-
-# Exclude data folder
-data/
-training/
-
-# Exclude anything else you don’t want in the container
-.git
-*.log
