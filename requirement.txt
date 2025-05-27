@@ -1,9 +1,0 @@
-pandas
-scikit-learn
-streamlit
-joblib
-python-dotenv
-requests
-pyodbc
-
-
