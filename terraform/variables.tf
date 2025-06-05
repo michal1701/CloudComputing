@@ -15,7 +15,7 @@ variable "container_group_name" {
 }
 variable "container_image" {
   type = string
-  default = "realvalacr.azurecr.io/realval:latest"
+  default = "realvalacr.azurecr.io/realval:v1"
 }
 variable "registry_server" {
   type = string
@@ -27,15 +27,15 @@ variable "registry_username" {
 }
 variable "registry_password" {
   type = string
-  default = "W7lEhuDMixqO4RjrdwnO+q9Yds1JNNrb4iYw1UdCAc+ACRCOC5cg"
+  default = "YOUR_PASSWORD"
 }
 variable "cpu" {
   type = number
-  default = 1
+  default = 2
 }
 variable "memory" {
   type = number
-  default = 1.5
+  default = 4
 }
 variable "dns_name_label" {
   type = string
