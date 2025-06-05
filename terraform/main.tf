@@ -46,6 +46,8 @@ resource "azurerm_container_group" "realval_app" {
       SQL_CONNECTION_STRING  = "Driver={ODBC Driver 18 for SQL Server};Server=tcp:${azurerm_mssql_server.sql_server.fully_qualified_domain_name},1433;Database=${var.sql_database_name};Uid=${var.sql_admin_user};Pwd=${var.sql_admin_password};Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
       BLOB_MODEL_URL         = "https://${azurerm_storage_account.storage.name}.blob.core.windows.net/${azurerm_storage_container.model_container.name}/model.pkl?${data.azurerm_storage_account_sas.blob_sas.sas}"
       BLOB_CITY_MAPPING_URL  = "https://${azurerm_storage_account.storage.name}.blob.core.windows.net/${azurerm_storage_container.model_container.name}/city_mapping.pkl?${data.azurerm_storage_account_sas.blob_sas.sas}"
+      BLOB_LOCATIONS_CSV_URL = "https://${azurerm_storage_account.storage.name}.blob.core.windows.net/${azurerm_storage_container.scrapeddata.name}/otodom_locations.csv?${data.azurerm_storage_account_sas.blob_sas.sas}"
+      BLOB_PROPERTIES_CSV_URL = "https://${azurerm_storage_account.storage.name}.blob.core.windows.net/${azurerm_storage_container.scrapeddata.name}/properties.csv?${data.azurerm_storage_account_sas.blob_sas.sas}"
     }
   }
 
@@ -70,6 +72,13 @@ resource "azurerm_mssql_database" "db" {
   sku_name  = "Basic"
 }
 
+resource "azurerm_mssql_firewall_rule" "allow_azure" {
+  name             = "AllowAzureServices"
+  server_id        = azurerm_mssql_server.sql_server.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "0.0.0.0"
+}
+
 ##### Azure Storage Account and container ###################################################
 resource "azurerm_storage_account" "storage" {
   name = var.storage_account_name
@@ -82,6 +91,12 @@ resource "azurerm_storage_account" "storage" {
 resource "azurerm_storage_container" "model_container" {
   name = var.storage_container_name
   storage_account_name = azurerm_storage_account.storage.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "scrapeddata" {
+  name  = "scrapeddata"
+  storage_account_name  = azurerm_storage_account.storage.name
   container_access_type = "private"
 }
 
@@ -101,6 +116,23 @@ resource "azurerm_storage_blob" "city_mapping_blob" {
   type = "Block"
   source = var.city_mapping_source_path
 }
+
+resource "azurerm_storage_blob" "octoparse_csv" {
+  name  = "otodom_locations.csv"
+  storage_account_name  = azurerm_storage_account.storage.name
+  storage_container_name = azurerm_storage_container.scrapeddata.name
+  type   = "Block"
+  source = "${path.module}/../src/data/otodom_locations.csv"
+}
+
+resource "azurerm_storage_blob" "properties_csv" {
+  name                   = "properties.csv"
+  storage_account_name   = azurerm_storage_account.storage.name
+  storage_container_name = azurerm_storage_container.scrapeddata.name
+  type                   = "Block"
+  source                 = "${path.module}/../src/data/properties.csv"
+}
+
 
 ##### SAS token for blobs ###################################################
 data "azurerm_storage_account_sas" "blob_sas" {
