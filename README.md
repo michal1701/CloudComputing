@@ -93,6 +93,6 @@ If everything works locally, proceed to cloud deployment.
 
 ---
 
-## 6. Access Deployed App
+## 6. Access app
 http://realvaluatorapp.northeurope.azurecontainer.io:8501/
 
