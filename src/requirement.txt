@@ -1,4 +1,11 @@
+streamlit
+streamlit-folium
 pandas
 scikit-learn
-streamlit
 joblib
+python-dotenv
+requests
+pyodbc
+altair
+bcrypt
+plotly
