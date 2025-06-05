@@ -482,7 +482,7 @@ with tab1:
                 SMTP_SERVER = "smtp.gmail.com"
                 SMTP_PORT = 465
                 SMTP_USER = os.getenv("SMTP_USER") or "realvaluator@gmail.com"
-                SMTP_PASS = os.getenv("SMTP_PASS") or "YOUR_SMTP_PASSWORD" " 
+                SMTP_PASS = os.getenv("SMTP_PASS") or "cuoaaacuaxqzfvbi" 
                 mail_subject = "Your property valuation from RealValuator"
                 mail_body = f"""
 Hello {st.session_state.username},
@@ -561,7 +561,6 @@ with tab_history:
                         del_btn = st.button("🗑️", key=f"del_{row['id']}", help="Usuń wycenę" if lang=="PL" else "Delete this entry")
                         if del_btn:
                             delete_single_prediction(row['id'], sql_conn_str)
-                            st.success("Wycena usunięta!" if lang=="PL" else "Prediction deleted!")
                             st.rerun()
      
                 delete_text = "🗑️ Usuń całą historię" if lang == "PL" else "🗑️ Delete all history"
@@ -664,14 +663,27 @@ with tab2:
         # --- PRICE DISTRIBUTION BY DISTRICT ---
         st.markdown("---")
         st.subheader(T["district_dist"])
-        districts_for_hist = [
-            d for d in districts.unique()
-            if d not in [x.capitalize() for x in exclude.get(city_choice, [])] and len(d) > 2]
+        city_for_district = city_hist_choice 
+        city_mask_for_district = properties_df["city"].astype(str).str.lower().str.contains(city_for_district[:4].lower())
+        districts_for_hist = (
+            properties_df[city_mask_for_district]["address"].astype(str).str.split(" ", expand=True)[0]
+            .str.capitalize()
+        )
+        exclude = {
+            "Kraków": ["małopolskie", "kraków"],
+            "Poznań": ["wielkopolskie", "poznań"],
+            "Warszawa": ["mazowieckie", "warszawa"],
+        }
+        allowed = [
+            d for d in districts_for_hist.unique()
+            if d not in [x.capitalize() for x in exclude.get(city_for_district, [])] and len(d) > 2
+        ]
 
-        if districts_for_hist:
-            district_hist = st.selectbox("Choose district", sorted(districts_for_hist), key="district_hist")
+        if allowed:
+            district_hist = st.selectbox("Choose district", sorted(allowed), key="district_hist")
             district_mask = properties_df["address"].astype(str).str.contains(district_hist, case=False, na=False)
-            prices_district = properties_df[mask & district_mask & properties_df["price"].notnull()]["price"]
+            prices_district = properties_df[city_mask_for_district & district_mask & properties_df["price"].notnull()]["price"]
+    
             if not prices_district.empty:
                 hist_dist = alt.Chart(pd.DataFrame({"price": prices_district})).mark_bar(
                     color="#b067db", opacity=0.75
@@ -679,7 +691,7 @@ with tab2:
                     alt.X("price", bin=alt.Bin(maxbins=30), title="Price [PLN]"),
                     y="count()",
                     tooltip=[alt.Tooltip("count()", title="Number of offers")]
-                ).properties(width=450, height=270, title=f"Price distribution in {district_hist} ({city_choice})")
+                ).properties(width=450, height=270, title=f"Price distribution in {district_hist} ({city_for_district})")
                 st.altair_chart(hist_dist, use_container_width=True)
             else:
                 st.info("No data for selected district.")
